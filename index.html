@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Jet Lag NL — Station Showdown</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ns-yellow:     #FFC917;
+      --ns-yellow-dim: rgba(255,201,23,0.18);
+      --ns-yellow-dark:#b38a00;
+      --ns-blue:       #003082;
+      --ns-blue-mid:   #0056b3;
+      --ns-blue-dim:   rgba(0,48,130,0.15);
+      --locked:        #00a550;
+      --locked-dim:    rgba(0,165,80,0.14);
+      --team-a:        var(--ns-yellow);
+      --team-a-dim:    var(--ns-yellow-dim);
+      --team-b:        var(--ns-blue-mid);
+      --team-b-dim:    var(--ns-blue-dim);
+      --bg:            #eef2f8;
+      --surface:       #ffffff;
+      --border:        #d4dae8;
+      --text:          #1a1a2e;
+      --muted:         #6b7a99;
+      --neutral:       #e4e8f0;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    html, body { height: 100%; overflow: hidden; }
+
+    body {
+      font-family: 'Syne', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: var(--ns-blue);
+      color: white;
+      padding: 0.7rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      gap: 0.5rem;
+    }
+
+    .logo { display: flex; align-items: center; gap: 0.6rem; min-width: 0; }
+
+    .ns-badge {
+      background: var(--ns-yellow);
+      color: var(--ns-blue);
+      font-weight: 800;
+      font-size: 0.8rem;
+      padding: 0.18rem 0.4rem;
+      border-radius: 4px;
+      letter-spacing: -0.02em;
+      flex-shrink: 0;
+    }
+
+    .logo h1 {
+      font-size: 0.95rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .header-right { display: flex; align-items: center; gap: 0.6rem; flex-shrink: 0; }
+
+    .timer-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 0.05rem; }
+
+    .timer-label {
+      font-size: 0.5rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.55);
+      font-family: 'DM Mono', monospace;
+    }
+
+    .header-timer {
+      font-family: 'DM Mono', monospace;
+      font-size: 1.35rem;
+      font-weight: 500;
+      color: var(--ns-yellow);
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      line-height: 1;
+      border: none;
+      background: none;
+    }
+    .header-timer.urgent { color: #ff5555; animation: urgentblink 1s ease-in-out infinite; }
+    @keyframes urgentblink { 0%,100%{opacity:1} 50%{opacity:0.35} }
+
+    .btn-reset-game {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 0.3rem 0.55rem;
+      border: 1.5px solid rgba(255,255,255,0.28);
+      border-radius: 5px;
+      background: transparent;
+      color: rgba(255,255,255,0.7);
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .btn-reset-game:hover, .btn-reset-game:active { border-color: white; color: white; }
+
+    /* ── SCORE BAR ── */
+    .score-bar {
+      background: var(--surface);
+      border-bottom: 2px solid var(--border);
+      padding: 0.7rem 1rem 0.55rem;
+      flex-shrink: 0;
+    }
+
+    .score-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 0.4rem;
+      margin-bottom: 0.55rem;
+    }
+
+    .team-block { display: flex; flex-direction: column; gap: 0.12rem; }
+    .team-block.right { align-items: flex-end; text-align: right; }
+
+    .team-name-input {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      border: none;
+      background: transparent;
+      outline: none;
+      border-bottom: 2px solid transparent;
+      transition: border-color 0.2s;
+      padding-bottom: 1px;
+      width: 100%;
+      max-width: 125px;
+      cursor: pointer;
+    }
+    .team-block:not(.right) .team-name-input { color: var(--ns-yellow-dark); }
+    .team-block.right .team-name-input { color: var(--ns-blue); text-align: right; }
+    .team-name-input:focus { border-bottom-color: currentColor; }
+
+    .team-sub { font-family: 'DM Mono', monospace; font-size: 0.62rem; color: var(--muted); }
+    .team-sub .lk { color: var(--locked); }
+
+    .score-center { display: flex; align-items: center; gap: 0.35rem; }
+
+    .score-num {
+      font-family: 'DM Mono', monospace;
+      font-size: 2rem;
+      font-weight: 500;
+      line-height: 1;
+    }
+    .score-num.a { color: var(--ns-yellow-dark); }
+    .score-num.b { color: var(--ns-blue); }
+
+    .score-vs { font-size: 0.6rem; color: var(--muted); letter-spacing: 0.15em; font-weight: 700; }
+
+    .progress-bar { height: 5px; background: var(--neutral); border-radius: 3px; overflow: hidden; }
+    .progress-fill { height: 100%; width: 100%; border-radius: 3px; transition: background 0.5s ease; }
+
+    /* ── TAB BAR ── */
+    .tab-bar {
+      display: flex;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .tab-btn {
+      flex: 1;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      padding: 0.6rem 0.5rem;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.3rem;
+    }
+    .tab-btn.active { color: var(--ns-blue); border-bottom-color: var(--ns-blue); background: rgba(0,48,130,0.04); }
+
+    /* ── CONTENT AREA ── */
+    .content-area { flex: 1; overflow: hidden; position: relative; }
+
+    /* ── STATION LIST ── */
+    .station-list-view {
+      height: 100%;
+      overflow-y: auto;
+      padding: 0.65rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    .station-list-view.hidden { display: none; }
+    .station-list-view::-webkit-scrollbar { width: 3px; }
+    .station-list-view::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .list-header {
+      font-size: 0.58rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 0.3rem 0.3rem 0.1rem;
+    }
+
+    .station-card {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 0.7rem 0.9rem;
+      cursor: pointer;
+      transition: transform 0.1s, opacity 0.1s;
+      user-select: none;
+    }
+    .station-card:active { transform: scale(0.975); opacity: 0.8; }
+    .station-card.claimed-a { border-color: var(--ns-yellow); background: var(--ns-yellow-dim); }
+    .station-card.claimed-b { border-color: var(--ns-blue-mid); background: var(--ns-blue-dim); }
+    .station-card.locked-a  { border-color: var(--locked); background: var(--locked-dim); border-width: 2px; }
+    .station-card.locked-b  { border-color: var(--locked); background: var(--locked-dim); border-width: 2px; }
+    .station-card.selected  { box-shadow: 0 0 0 2px var(--ns-blue); }
+
+    .station-card-row { display: flex; align-items: center; justify-content: space-between; gap: 0.4rem; }
+
+    .station-name { font-size: 0.88rem; font-weight: 700; line-height: 1.2; }
+
+    .station-badge {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.58rem;
+      font-weight: 500;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      padding: 0.18rem 0.45rem;
+      border-radius: 4px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .badge-neutral { background: var(--neutral); color: var(--muted); }
+    .badge-a       { background: var(--ns-yellow); color: #5a4000; }
+    .badge-b       { background: var(--ns-blue); color: white; }
+    .badge-locked  { background: var(--locked); color: white; }
+
+    .steal-indicator {
+      font-size: 0.66rem;
+      color: #c47a00;
+      margin-top: 0.22rem;
+      font-weight: 700;
+      animation: pulse 1.8s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    /* ── MAP VIEW ── */
+    .map-view { height: 100%; position: relative; overflow: hidden; background: #dde6f2; }
+    .map-view.hidden { display: none; }
+
+    svg#network-map { width: 100%; height: 100%; display: block; }
+
+    .map-legend {
+      position: absolute;
+      bottom: 0.75rem;
+      left: 0.75rem;
+      background: rgba(255,255,255,0.93);
+      backdrop-filter: blur(6px);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.55rem 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      font-size: 0.62rem;
+      color: var(--muted);
+      z-index: 5;
+    }
+    .legend-item { display: flex; align-items: center; gap: 0.45rem; }
+    .legend-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+
+    /* ── BOTTOM SHEET ── */
+    .sheet-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,20,60,0.35);
+      z-index: 200;
+    }
+    .sheet-backdrop.open { display: block; }
+
+    .bottom-sheet {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: var(--surface);
+      border-radius: 16px 16px 0 0;
+      padding: 0 1.1rem calc(env(safe-area-inset-bottom, 0px) + 1.5rem);
+      z-index: 201;
+      transform: translateY(100%);
+      transition: transform 0.28s cubic-bezier(0.32,0.72,0,1);
+      max-height: 82vh;
+      overflow-y: auto;
+      box-shadow: 0 -4px 32px rgba(0,20,60,0.15);
+    }
+    .bottom-sheet.open { transform: translateY(0); }
+
+    .sheet-handle {
+      width: 36px; height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      margin: 0.7rem auto 0.9rem;
+    }
+
+    .sheet-station-name { font-size: 1.05rem; font-weight: 800; letter-spacing: -0.01em; margin-bottom: 0.18rem; }
+    .sheet-status { font-size: 0.72rem; color: var(--muted); font-family: 'DM Mono', monospace; margin-bottom: 0.9rem; }
+
+    .sheet-divider { height: 1px; background: var(--border); margin: 0.6rem 0; }
+
+    .sheet-label {
+      font-size: 0.58rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.45rem;
+    }
+
+    .sheet-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.45rem; margin-bottom: 0.65rem; }
+
+    .sheet-btn {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 700;
+      padding: 0.8rem 0.5rem;
+      border-radius: 9px;
+      border: 1.5px solid var(--border);
+      cursor: pointer;
+      transition: transform 0.1s, opacity 0.1s;
+      background: var(--neutral);
+      color: var(--text);
+      text-align: center;
+      user-select: none;
+    }
+    .sheet-btn:active { transform: scale(0.96); opacity: 0.8; }
+    .sheet-btn.claim-a  { background: var(--ns-yellow-dim); border-color: var(--ns-yellow); color: #7a5000; }
+    .sheet-btn.claim-b  { background: var(--ns-blue-dim); border-color: var(--ns-blue-mid); color: var(--ns-blue); }
+    .sheet-btn.lock-btn { background: var(--locked-dim); border-color: var(--locked); color: #006a35; grid-column: span 2; }
+    .sheet-btn.reset-btn{ background: var(--neutral); color: var(--muted); grid-column: span 2; font-size: 0.75rem; }
+    .sheet-btn:disabled { opacity: 0.28; pointer-events: none; }
+
+    /* ── TOAST ── */
+    .toast-container {
+      position: fixed;
+      top: 1rem; left: 50%;
+      transform: translateX(-50%);
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.35rem;
+      pointer-events: none;
+    }
+    .toast {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      padding: 0.55rem 1rem;
+      border-radius: 20px;
+      background: var(--ns-blue);
+      color: white;
+      white-space: nowrap;
+      animation: toastIn 0.2s ease, toastOut 0.3s ease 2.5s forwards;
+      box-shadow: 0 4px 16px rgba(0,20,60,0.25);
+    }
+    @keyframes toastIn  { from{opacity:0;transform:translateY(-8px) scale(0.95)} to{opacity:1;transform:none} }
+    @keyframes toastOut { to{opacity:0;transform:translateY(-4px)} }
+
+    /* ── DESKTOP ── */
+    @media (min-width: 768px) {
+      .content-area { display: grid; grid-template-columns: 360px 1fr; }
+      .tab-bar { display: none; }
+      .station-list-view,
+      .map-view { display: flex !important; height: 100%; }
+      .station-list-view { flex-direction: column; border-right: 1px solid var(--border); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <div class="ns-badge">NS</div>
+    <h1>Station Showdown</h1>
+  </div>
+  <div class="header-right">
+    <button class="btn-reset-game" id="btn-reset-game">↺ Reset</button>
+    <div class="timer-wrap">
+      <div class="timer-label">eindtijd</div>
+      <div class="header-timer" id="timer-display" title="Klik om eindtijd in te stellen">--:--:--</div>
+    </div>
+  </div>
+</header>
+
+<!-- SCORE BAR -->
+<div class="score-bar">
+  <div class="score-row">
+    <div class="team-block">
+      <input class="team-name-input" id="name-a" value="Team Geel" maxlength="18" />
+      <div class="team-sub"><span id="count-a">0</span> st. · <span class="lk" id="locked-a">0</span> 🔒</div>
+    </div>
+    <div class="score-center">
+      <span class="score-num a" id="score-a">0</span>
+      <span class="score-vs">–</span>
+      <span class="score-num b" id="score-b">0</span>
+    </div>
+    <div class="team-block right">
+      <input class="team-name-input" id="name-b" value="Team Blauw" maxlength="18" />
+      <div class="team-sub"><span id="count-b">0</span> st. · <span class="lk" id="locked-b">0</span> 🔒</div>
+    </div>
+  </div>
+  <div class="progress-bar">
+    <div class="progress-fill" id="progress-fill" style="background:var(--neutral)"></div>
+  </div>
+</div>
+
+<!-- TAB BAR -->
+<div class="tab-bar">
+  <button class="tab-btn active" id="tab-list" onclick="switchTab('list')">🚉 Stations</button>
+  <button class="tab-btn" id="tab-map"  onclick="switchTab('map')">🗺 Kaart</button>
+</div>
+
+<!-- CONTENT -->
+<div class="content-area">
+  <div class="station-list-view" id="station-list-view">
+    <div class="list-header">Alle stations (17)</div>
+  </div>
+  <div class="map-view hidden" id="map-view">
+    <svg id="network-map" viewBox="0 0 800 620" xmlns="http://www.w3.org/2000/svg">
+      <g id="map-lines"></g>
+      <g id="map-nodes"></g>
+    </svg>
+    <div class="map-legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#aab8cc"></div>Vrij</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#FFC917;border:1px solid #ccc"></div>Team Geel — Geclaimd</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#003082"></div>Team Blauw — Geclaimd</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#00a550;box-shadow:0 0 0 2px white,0 0 0 3.5px #00a550"></div>Vergrendeld</div>
+      <div class="legend-item" style="color:#c47a00;font-weight:700">⚡ = Stelen mogelijk!</div>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM SHEET -->
+<div class="sheet-backdrop" id="sheet-backdrop"></div>
+<div class="bottom-sheet" id="bottom-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-station-name" id="sheet-name">—</div>
+  <div class="sheet-status" id="sheet-status">—</div>
+  <div class="sheet-divider"></div>
+
+  <div class="sheet-label">Claim station</div>
+  <div class="sheet-grid">
+    <button class="sheet-btn claim-a" id="btn-claim-a">Claim Geel</button>
+    <button class="sheet-btn claim-b" id="btn-claim-b">Claim Blauw</button>
+  </div>
+
+  <div class="sheet-label">Challenge voltooid</div>
+  <div class="sheet-grid">
+    <button class="sheet-btn lock-btn" id="btn-lock">🔒 Vergrendel station</button>
+  </div>
+
+  <div class="sheet-label">Beheer</div>
+  <div class="sheet-grid">
+    <button class="sheet-btn reset-btn" id="btn-unclaim">↩ Vrijgeven</button>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+// ── PERSISTENCE ──────────────────────────────
+const STORAGE_KEY = 'jetlag-nl-v2';
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      stationStates: { ...state },
+      teamNames: { a: document.getElementById('name-a').value, b: document.getElementById('name-b').value },
+      endTime: endTimeISO,
+    }));
+  } catch(e) {}
+}
+function loadState() {
+  try { const r = localStorage.getItem(STORAGE_KEY); return r ? JSON.parse(r) : null; }
+  catch(e) { return null; }
+}
+function clearSavedState() { localStorage.removeItem(STORAGE_KEY); }
+
+// ── DATA ─────────────────────────────────────
+const STATIONS = [
+  { id: 'den-haag',     name: 'Den Haag Centraal',    x: 100, y: 480 },
+  { id: 'leiden',       name: 'Leiden Centraal',       x: 175, y: 360 },
+  { id: 'rotterdam',    name: 'Rotterdam Centraal',    x: 200, y: 540 },
+  { id: 'gouda',        name: 'Gouda',                 x: 295, y: 490 },
+  { id: 'alphen',       name: 'Alphen aan den Rijn',   x: 260, y: 385 },
+  { id: 'woerden',      name: 'Woerden',               x: 355, y: 405 },
+  { id: 'breukelen',    name: 'Breukelen',             x: 430, y: 355 },
+  { id: 'utrecht',      name: 'Utrecht Centraal',      x: 430, y: 440 },
+  { id: 'hilversum',    name: 'Hilversum',             x: 515, y: 305 },
+  { id: 'amersfoort',   name: 'Amersfoort',            x: 590, y: 355 },
+  { id: 'bijlmer',      name: 'Bijlmer Arena',         x: 520, y: 200 },
+  { id: 'weesp',        name: 'Weesp',                 x: 565, y: 240 },
+  { id: 'schiphol',     name: 'Schiphol',              x: 310, y: 245 },
+  { id: 'amsterdam-c',  name: 'Amsterdam Centraal',    x: 430, y: 155 },
+  { id: 'amsterdam-sl', name: 'Amsterdam Sloterdijk',  x: 370, y: 195 },
+  { id: 'haarlem',      name: 'Haarlem',               x: 245, y: 200 },
+  { id: 'uitgeest',     name: 'Uitgeest',              x: 185, y: 130 },
+];
+
+const CONNECTIONS = [
+  ['den-haag','leiden'],['den-haag','rotterdam'],
+  ['leiden','alphen'],['leiden','schiphol'],
+  ['rotterdam','gouda'],['gouda','alphen'],['gouda','utrecht'],
+  ['alphen','woerden'],['woerden','utrecht'],['woerden','breukelen'],
+  ['breukelen','utrecht'],['breukelen','amsterdam-c'],
+  ['utrecht','amsterdam-c'],['utrecht','amersfoort'],
+  ['hilversum','breukelen'],['hilversum','amersfoort'],['hilversum','weesp'],
+  ['amersfoort','weesp'],['bijlmer','weesp'],['bijlmer','amsterdam-c'],
+  ['amsterdam-c','amsterdam-sl'],['amsterdam-sl','schiphol'],['amsterdam-sl','haarlem'],
+  ['haarlem','schiphol'],['haarlem','uitgeest'],['schiphol','leiden'],
+];
+
+// ── STATE ────────────────────────────────────
+const state = {};
+STATIONS.forEach(s => { state[s.id] = 'neutral'; });
+const _saved = loadState();
+if (_saved?.stationStates) Object.assign(state, _saved.stationStates);
+let selectedStation = null;
+
+// ── TIMER ────────────────────────────────────
+// Counts down to a wall-clock time, not a duration.
+let endTimeISO = _saved?.endTime || null;
+
+if (!endTimeISO) {
+  // Default: 17:00 today (or tomorrow if already past)
+  const d = new Date(); d.setHours(17,0,0,0);
+  if (d <= new Date()) d.setDate(d.getDate()+1);
+  endTimeISO = d.toISOString();
+  saveState();
+}
+
+function secsLeft() { return Math.max(0, Math.round((new Date(endTimeISO) - Date.now()) / 1000)); }
+
+function fmtCountdown(s) {
+  if (s <= 0) return '00:00:00';
+  return [Math.floor(s/3600), Math.floor((s%3600)/60), s%60]
+    .map(n => n.toString().padStart(2,'0')).join(':');
+}
+
+function tickTimer() {
+  const s = secsLeft();
+  const el = document.getElementById('timer-display');
+  el.textContent = fmtCountdown(s);
+  el.classList.toggle('urgent', s > 0 && s < 600);
+  if (s === 0) toast('⏰ Tijd is om! Het spel is voorbij!');
+}
+
+document.getElementById('timer-display').addEventListener('click', () => {
+  const cur = new Date(endTimeISO);
+  const curStr = cur.getHours().toString().padStart(2,'0') + ':' + cur.getMinutes().toString().padStart(2,'0');
+  const input = prompt('Stel eindtijd in (HH:MM):', curStr);
+  if (!input) return;
+  const m = input.match(/^(\d{1,2}):(\d{2})$/);
+  if (!m) { toast('⚠️ Gebruik formaat HH:MM'); return; }
+  const h = parseInt(m[1]), min = parseInt(m[2]);
+  if (h > 23 || min > 59) { toast('⚠️ Ongeldige tijd'); return; }
+  const d = new Date(); d.setHours(h, min, 0, 0);
+  if (d <= new Date()) d.setDate(d.getDate()+1);
+  endTimeISO = d.toISOString();
+  saveState();
+  tickTimer();
+  toast(`⏰ Eindtijd ingesteld op ${input}`);
+});
+
+tickTimer();
+setInterval(tickTimer, 1000);
+
+// ── TAB SWITCHING ─────────────────────────────
+function switchTab(tab) {
+  const lv = document.getElementById('station-list-view');
+  const mv = document.getElementById('map-view');
+  const tl = document.getElementById('tab-list');
+  const tm = document.getElementById('tab-map');
+  if (tab === 'list') {
+    lv.classList.remove('hidden'); mv.classList.add('hidden');
+    tl.classList.add('active'); tm.classList.remove('active');
+  } else {
+    mv.classList.remove('hidden'); lv.classList.add('hidden');
+    tm.classList.add('active'); tl.classList.remove('active');
+    drawMap(); // ensure fresh render when switching to map
+  }
+}
+
+// ── MAP ───────────────────────────────────────
+function stationById(id) { return STATIONS.find(s => s.id === id); }
+
+const C = { yellow:'#FFC917', blue:'#003082', green:'#00a550', lineColor:'#b8c8de', bgNode:'#c4d0e2', strokeNeutral:'#8898b8' };
+
+function drawMap() {
+  const lG = document.getElementById('map-lines');
+  const nG = document.getElementById('map-nodes');
+  lG.innerHTML = ''; nG.innerHTML = '';
+
+  CONNECTIONS.forEach(([a,b]) => {
+    const sa = stationById(a), sb = stationById(b);
+    const ln = document.createElementNS('http://www.w3.org/2000/svg','line');
+    ln.setAttribute('x1',sa.x); ln.setAttribute('y1',sa.y);
+    ln.setAttribute('x2',sb.x); ln.setAttribute('y2',sb.y);
+    ln.setAttribute('stroke',C.lineColor); ln.setAttribute('stroke-width','3');
+    ln.setAttribute('stroke-linecap','round');
+    lG.appendChild(ln);
+  });
+
+  STATIONS.forEach(s => {
+    const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+    g.setAttribute('cursor','pointer');
+    g.addEventListener('click', () => openSheet(s.id));
+
+    const st = state[s.id];
+    let fill=C.bgNode, stroke=C.strokeNeutral, strokeW=1.5, r=10;
+    if (st==='claimed-a') { fill='rgba(255,201,23,0.3)'; stroke=C.yellow; strokeW=2.5; }
+    if (st==='claimed-b') { fill='rgba(0,48,130,0.22)';  stroke=C.blue;   strokeW=2.5; }
+    if (st==='locked-a')  { fill=C.yellow; stroke=C.green; strokeW=3; r=12; }
+    if (st==='locked-b')  { fill=C.blue;   stroke=C.green; strokeW=3; r=12; }
+    if (selectedStation===s.id) { strokeW+=1.5; }
+
+    // Locked glow ring
+    if (st==='locked-a'||st==='locked-b') {
+      const glow = document.createElementNS('http://www.w3.org/2000/svg','circle');
+      glow.setAttribute('cx',s.x); glow.setAttribute('cy',s.y); glow.setAttribute('r',r+7);
+      glow.setAttribute('fill','rgba(0,165,80,0.16)');
+      g.appendChild(glow);
+    }
+
+    // Stealable pulse ring
+    if (st==='claimed-a'||st==='claimed-b') {
+      const pulse = document.createElementNS('http://www.w3.org/2000/svg','circle');
+      pulse.setAttribute('cx',s.x); pulse.setAttribute('cy',s.y); pulse.setAttribute('r',r+4);
+      pulse.setAttribute('fill','none');
+      pulse.setAttribute('stroke', st==='claimed-a' ? C.yellow : C.blue);
+      pulse.setAttribute('stroke-width','1.5'); pulse.setAttribute('opacity','0.55');
+      const a1=document.createElementNS('http://www.w3.org/2000/svg','animate');
+      a1.setAttribute('attributeName','r'); a1.setAttribute('values',`${r+2};${r+10};${r+2}`);
+      a1.setAttribute('dur','2.2s'); a1.setAttribute('repeatCount','indefinite');
+      const a2=document.createElementNS('http://www.w3.org/2000/svg','animate');
+      a2.setAttribute('attributeName','opacity'); a2.setAttribute('values','0.6;0;0.6');
+      a2.setAttribute('dur','2.2s'); a2.setAttribute('repeatCount','indefinite');
+      pulse.appendChild(a1); pulse.appendChild(a2);
+      g.appendChild(pulse);
+    }
+
+    const circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    circle.setAttribute('cx',s.x); circle.setAttribute('cy',s.y); circle.setAttribute('r',r);
+    circle.setAttribute('fill',fill); circle.setAttribute('stroke',stroke); circle.setAttribute('stroke-width',strokeW);
+    g.appendChild(circle);
+
+    if (st==='locked-a'||st==='locked-b') {
+      const txt=document.createElementNS('http://www.w3.org/2000/svg','text');
+      txt.setAttribute('x',s.x); txt.setAttribute('y',s.y+4);
+      txt.setAttribute('text-anchor','middle'); txt.setAttribute('font-size','10');
+      txt.textContent='🔒'; g.appendChild(txt);
+    }
+
+    const labelFill = st==='neutral' ? '#7a8faa'
+      : (st.includes('a') ? '#7a5000' : '#001a5e');
+
+    const label=document.createElementNS('http://www.w3.org/2000/svg','text');
+    label.setAttribute('x',s.x); label.setAttribute('y',s.y+r+13);
+    label.setAttribute('text-anchor','middle');
+    label.setAttribute('font-family','Syne, sans-serif');
+    label.setAttribute('font-size','8.5'); label.setAttribute('font-weight','700');
+    label.setAttribute('fill',labelFill);
+    label.textContent = s.name.replace(' Centraal','').replace(' aan den Rijn',' a/d Rijn');
+    g.appendChild(label);
+
+    nG.appendChild(g);
+  });
+}
+
+// ── STATION LIST ──────────────────────────────
+function renderStationList() {
+  const view = document.getElementById('station-list-view');
+  view.innerHTML = '<div class="list-header">Alle stations (17)</div>';
+  STATIONS.forEach(s => {
+    const st = state[s.id];
+    const card = document.createElement('div');
+    card.className = 'station-card'
+      + (st==='claimed-a' ? ' claimed-a' : st==='claimed-b' ? ' claimed-b'
+       : st==='locked-a'  ? ' locked-a'  : st==='locked-b'  ? ' locked-b' : '')
+      + (selectedStation===s.id ? ' selected' : '');
+
+    let bCls='badge-neutral', bTxt='Vrij';
+    if (st==='claimed-a') { bCls='badge-a'; bTxt=tn('a')+' — Geclaimd'; }
+    if (st==='claimed-b') { bCls='badge-b'; bTxt=tn('b')+' — Geclaimd'; }
+    if (st==='locked-a')  { bCls='badge-locked'; bTxt=tn('a')+' 🔒'; }
+    if (st==='locked-b')  { bCls='badge-locked'; bTxt=tn('b')+' 🔒'; }
+
+    const stealable = st==='claimed-a'||st==='claimed-b';
+    card.innerHTML = `
+      <div class="station-card-row">
+        <div class="station-name">${s.name}</div>
+        <div class="station-badge ${bCls}">${bTxt}</div>
+      </div>
+      ${stealable ? '<div class="steal-indicator">⚡ Open voor stelen!</div>' : ''}`;
+    card.addEventListener('click', () => openSheet(s.id));
+    view.appendChild(card);
+  });
+}
+
+// ── BOTTOM SHEET ──────────────────────────────
+function openSheet(id) {
+  selectedStation = id;
+  const s = stationById(id), st = state[id];
+  document.getElementById('sheet-name').textContent = s.name;
+
+  let status = 'Vrij — beschikbaar';
+  if (st==='claimed-a') status = `Geclaimd door ${tn('a')} · ⚡ Stelen mogelijk!`;
+  if (st==='claimed-b') status = `Geclaimd door ${tn('b')} · ⚡ Stelen mogelijk!`;
+  if (st==='locked-a')  status = `🔒 Vergrendeld door ${tn('a')} · Permanent`;
+  if (st==='locked-b')  status = `🔒 Vergrendeld door ${tn('b')} · Permanent`;
+
+  document.getElementById('sheet-status').textContent = status;
+  document.getElementById('btn-claim-a').textContent = `Claim ${tn('a')}`;
+  document.getElementById('btn-claim-b').textContent = `Claim ${tn('b')}`;
+
+  const lockBtn = document.getElementById('btn-lock');
+  lockBtn.disabled = !(st==='claimed-a'||st==='claimed-b');
+
+  document.getElementById('sheet-backdrop').classList.add('open');
+  document.getElementById('bottom-sheet').classList.add('open');
+  renderStationList();
+  drawMap();
+}
+
+function closeSheet() {
+  selectedStation = null;
+  document.getElementById('sheet-backdrop').classList.remove('open');
+  document.getElementById('bottom-sheet').classList.remove('open');
+  renderStationList();
+  drawMap();
+}
+
+document.getElementById('sheet-backdrop').addEventListener('click', closeSheet);
+
+function applyAction(newSt) {
+  if (!selectedStation) return;
+  state[selectedStation] = newSt;
+  saveState(); updateScores(); renderStationList(); drawMap();
+  openSheet(selectedStation);
+}
+
+document.getElementById('btn-claim-a').addEventListener('click', () => {
+  const s=stationById(selectedStation), old=state[selectedStation];
+  if (old==='locked-a'||old==='locked-b') { toast('❌ Station is vergrendeld!'); return; }
+  applyAction('claimed-a'); toast(`🚂 ${s.name} geclaimd door ${tn('a')}!`);
+});
+document.getElementById('btn-claim-b').addEventListener('click', () => {
+  const s=stationById(selectedStation), old=state[selectedStation];
+  if (old==='locked-a'||old==='locked-b') { toast('❌ Station is vergrendeld!'); return; }
+  applyAction('claimed-b'); toast(`🚂 ${s.name} geclaimd door ${tn('b')}!`);
+});
+document.getElementById('btn-lock').addEventListener('click', () => {
+  const s=stationById(selectedStation), st=state[selectedStation];
+  if (st==='claimed-a') { applyAction('locked-a'); toast(`🔒 ${s.name} vergrendeld door ${tn('a')}!`); }
+  else if (st==='claimed-b') { applyAction('locked-b'); toast(`🔒 ${s.name} vergrendeld door ${tn('b')}!`); }
+  else toast('⚠️ Claim het station eerst!');
+});
+document.getElementById('btn-unclaim').addEventListener('click', () => {
+  const s=stationById(selectedStation);
+  applyAction('neutral'); toast(`↩ ${s.name} vrijgegeven.`);
+});
+
+// ── SCORES ────────────────────────────────────
+function tn(t) { return document.getElementById(`name-${t}`).value || (t==='a' ? 'Team Geel' : 'Team Blauw'); }
+
+if (_saved?.teamNames) {
+  if (_saved.teamNames.a) document.getElementById('name-a').value = _saved.teamNames.a;
+  if (_saved.teamNames.b) document.getElementById('name-b').value = _saved.teamNames.b;
+}
+document.getElementById('name-a').addEventListener('input', saveState);
+document.getElementById('name-b').addEventListener('input', saveState);
+
+function updateScores() {
+  const vals = Object.values(state);
+  const cA=vals.filter(v=>v==='claimed-a'||v==='locked-a').length;
+  const cB=vals.filter(v=>v==='claimed-b'||v==='locked-b').length;
+  const lA=vals.filter(v=>v==='locked-a').length;
+  const lB=vals.filter(v=>v==='locked-b').length;
+  document.getElementById('score-a').textContent=cA;
+  document.getElementById('score-b').textContent=cB;
+  document.getElementById('count-a').textContent=cA;
+  document.getElementById('count-b').textContent=cB;
+  document.getElementById('locked-a').textContent=lA;
+  document.getElementById('locked-b').textContent=lB;
+  const total=cA+cB;
+  const pct=total===0?50:(cA/total)*100;
+  document.getElementById('progress-fill').style.background = total===0
+    ? 'var(--neutral)'
+    : `linear-gradient(to right,#FFC917 ${pct}%,#003082 ${pct}%)`;
+}
+
+// ── RESET ─────────────────────────────────────
+document.getElementById('btn-reset-game').addEventListener('click', () => {
+  if (!confirm('Geheel spel resetten? Alle geclaimde en vergrendelde stations worden gewist.')) return;
+  clearSavedState(); location.reload();
+});
+
+// ── TOAST ─────────────────────────────────────
+function toast(msg) {
+  const el = document.createElement('div');
+  el.className='toast'; el.textContent=msg;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(()=>el.remove(),3000);
+}
+
+// ── INIT ──────────────────────────────────────
+updateScores();
+renderStationList();
+drawMap();
+if (_saved) toast('💾 Spelstatus hersteld!');
+</script>
+</body>
+</html>
