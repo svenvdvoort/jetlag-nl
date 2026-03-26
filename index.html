@@ -514,24 +514,24 @@ function loadState() {
 function clearSavedState() { localStorage.removeItem(STORAGE_KEY); }
 
 // ── DATA ─────────────────────────────────────
-const STATIONS = [			
-  { id: 'uitgeest',         name: 'Uitgeest',              x: 0,   y: 317 },			
-  { id: 'haarlem',          name: 'Haarlem',               x: 121, y: 279 },			
-  { id: 'amsterdam-sl',     name: 'Amsterdam Sloterdijk',  x: 120, y: 395 },			
-  { id: 'amsterdam-c',      name: 'Amsterdam Centraal',    x: 129, y: 430 },			
-  { id: 'weesp',            name: 'Weesp',                 x: 189, y: 512 },			
-  { id: 'leiden',           name: 'Leiden Centraal',       x: 321, y: 191 },			
-  { id: 'schiphol',         name: 'Schiphol',              x: 192, y: 351 },			
-  { id: 'bijlmer',          name: 'Bijlmer Arena',         x: 190, y: 457 },			
-  { id: 'hilversum',        name: 'Hilversum',             x: 267, y: 591 },			
-  { id: 'amersfoort',       name: 'Amersfoort',            x: 333, y: 700 },			
-  { id: 'utrecht',          name: 'Utrecht Centraal',      x: 391, y: 550 },			
-  { id: 'breukelen',        name: 'Breukelen',             x: 317, y: 482 },			
-  { id: 'woerden',          name: 'Woerden',               x: 395, y: 426 },			
-  { id: 'alphen',           name: 'Alphen a/d Rijn',       x: 359, y: 291 },			
-  { id: 'gouda',            name: 'Gouda',                 x: 456, y: 319 },			
-  { id: 'den-haag',         name: 'Den Haag Centraal',     x: 398, y: 100 },			
-  { id: 'rotterdam',        name: 'Rotterdam Centraal',    x: 540, y: 184 }			
+const STATIONS = [
+  { id: 'uitgeest',          	name: 'Uitgeest',             	x: 0.36119574,  	y: 0.1},
+  { id: 'haarlem',             	name: 'Haarlem',               	x: 0.298524426, 	y: 0.227243207 },
+  { id: 'amsterdam-sl', 	name: 'Sloterdijk',  	x: 0.49130414,  	y: 0.22654601 },
+  { id: 'amsterdam-c',    	name: 'Amsterdam C.',    	x: 0.550116995, 	y: 0.23605845 },
+  { id: 'weesp',            		name: 'Weesp',                	x: 0.687035003, 	y: 0.299656177 },
+  { id: 'leiden',           		name: 'Leiden C.',      		x: 0.151540041, 	y: 0.439458479 },
+  { id: 'schiphol',         	name: 'Schiphol',             	x: 0.418451841, 	y: 0.302454515 },
+  { id: 'bijlmer',          		name: 'Bijlmer Arena',    x: 0.595329736, 	y: 0.300238766 },
+  { id: 'hilversum',        	name: 'Hilversum',            	x: 0.819120386, 	y: 0.381896758 },
+  { id: 'amersfoort',       	name: 'Amersfoort',          x: 1,            			y: 0.451358579 },
+  { id: 'utrecht',          		name: 'Utrecht C.',     	x: 0.750728236, 	y: 0.512539993 },
+  { id: 'breukelen',        	name: 'Breukelen',           	x: 0.636473903, 	y: 0.435074734 },
+  { id: 'woerden',          		name: 'Woerden',              	x: 0.54320233,  	y: 0.516933289 },
+  { id: 'alphen',           		name: 'Alphen a/d Rijn',x: 0.318284705, 	y: 0.47903634 },
+  { id: 'gouda',            		name: 'Gouda',                	x: 0.364882288, 	y: 0.581810802 },
+  { id: 'den-haag',         	name: 'Den Haag C.',    	x: 0,            			y: 0.520677141 },
+  { id: 'rotterdam',        	name: 'Rotterdam C.',   	x: 0.139267466,	y: 0.670192445 }
 ];
 
 const CONNECTIONS = [
@@ -644,12 +644,14 @@ function drawMap() {
   const lG = document.getElementById('map-lines');
   const nG = document.getElementById('map-nodes');
   lG.innerHTML = ''; nG.innerHTML = '';
+  const width = 800;
+  const height =800;
 
   CONNECTIONS.forEach(([a,b]) => {
     const sa = stationById(a), sb = stationById(b);
     const ln = document.createElementNS('http://www.w3.org/2000/svg','line');
-    ln.setAttribute('x1',sa.x); ln.setAttribute('y1',sa.y);
-    ln.setAttribute('x2',sb.x); ln.setAttribute('y2',sb.y);
+    ln.setAttribute('x1',sa.x * width); ln.setAttribute('y1',sa.y * height);
+    ln.setAttribute('x2',sb.x * width); ln.setAttribute('y2',sb.y * height);
     ln.setAttribute('stroke',C.lineColor); ln.setAttribute('stroke-width','3');
     ln.setAttribute('stroke-linecap','round');
     lG.appendChild(ln);
@@ -671,7 +673,7 @@ function drawMap() {
     // Locked glow ring
     if (st==='locked-a'||st==='locked-b') {
       const glow = document.createElementNS('http://www.w3.org/2000/svg','circle');
-      glow.setAttribute('cx',s.x); glow.setAttribute('cy',s.y); glow.setAttribute('r',r+7);
+      glow.setAttribute('cx',s.x * width); glow.setAttribute('cy',s.y * height); glow.setAttribute('r',r+7);
       glow.setAttribute('fill','rgba(0,165,80,0.16)');
       g.appendChild(glow);
     }
@@ -679,7 +681,7 @@ function drawMap() {
     // Stealable pulse ring
     if (st==='claimed-a'||st==='claimed-b') {
       const pulse = document.createElementNS('http://www.w3.org/2000/svg','circle');
-      pulse.setAttribute('cx',s.x); pulse.setAttribute('cy',s.y); pulse.setAttribute('r',r+4);
+      pulse.setAttribute('cx',s.x * width); pulse.setAttribute('cy',s.y * height); pulse.setAttribute('r',r+4);
       pulse.setAttribute('fill','none');
       pulse.setAttribute('stroke', st==='claimed-a' ? C.yellow : C.blue);
       pulse.setAttribute('stroke-width','1.5'); pulse.setAttribute('opacity','0.55');
@@ -694,7 +696,7 @@ function drawMap() {
     }
 
     const circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
-    circle.setAttribute('cx',s.x); circle.setAttribute('cy',s.y); circle.setAttribute('r',r);
+    circle.setAttribute('cx',s.x * width); circle.setAttribute('cy',s.y * height); circle.setAttribute('r',r);
     circle.setAttribute('fill',fill); circle.setAttribute('stroke',stroke); circle.setAttribute('stroke-width',strokeW);
     g.appendChild(circle);
 
@@ -709,7 +711,7 @@ function drawMap() {
       : (st.includes('a') ? '#7a5000' : '#001a5e');
 
     const label=document.createElementNS('http://www.w3.org/2000/svg','text');
-    label.setAttribute('x',s.x); label.setAttribute('y',s.y+r+13);
+    label.setAttribute('x',s.x * width); label.setAttribute('y',s.y * height+r+13);
     label.setAttribute('text-anchor','middle');
     label.setAttribute('font-family','Syne, sans-serif');
     label.setAttribute('font-size','8.5'); label.setAttribute('font-weight','700');
