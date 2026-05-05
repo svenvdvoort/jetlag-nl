@@ -6,6 +6,7 @@
   <title>Jet Lag NL — Station Showdown</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/easypz@latest/easypz.js"></script>
   <style>
     :root {
       --ns-yellow:     #FFC917;
@@ -454,7 +455,7 @@
     <div class="list-header">Alle stations (17)</div>
   </div>
   <div class="map-view hidden" id="map-view">
-    <svg id="network-map" viewBox="0 0 800 620" xmlns="http://www.w3.org/2000/svg">
+    <svg easypz id="network-map" viewBox="0 0 800 620" xmlns="http://www.w3.org/2000/svg">
       <g id="map-lines"></g>
       <g id="map-nodes"></g>
     </svg>
