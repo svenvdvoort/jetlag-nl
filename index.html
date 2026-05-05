@@ -2,7 +2,7 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Jet Lag NL — Station Showdown</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -455,8 +455,10 @@
   </div>
   <div class="map-view hidden" id="map-view">
     <svg id="network-map" viewBox="0 0 800 620" xmlns="http://www.w3.org/2000/svg">
-      <g id="map-lines"></g>
-      <g id="map-nodes"></g>
+      <g id="map-viewport">
+        <g id="map-lines"></g>
+        <g id="map-nodes"></g>
+      </g>
     </svg>
     <div class="map-legend">
       <div class="legend-item"><div class="legend-dot" style="background:#aab8cc"></div>Vrij</div>
@@ -858,6 +860,114 @@ function toast(msg) {
   document.getElementById('toast-container').appendChild(el);
   setTimeout(()=>el.remove(),3000);
 }
+
+// ── MAP PAN & PINCH-ZOOM ──────────────────────
+(function () {
+  const svg = document.getElementById('network-map');
+  const vp  = document.getElementById('map-viewport');
+
+  let scale = 1, tx = 0, ty = 0;
+  let isPanning = false, lastX = 0, lastY = 0;
+  // Pinch state
+  let lastDist = null;
+  let pinchMidSvg = null; // midpoint in SVG coords at pinch start
+
+  const MIN_SCALE = 0.5, MAX_SCALE = 6;
+
+  function applyTransform() {
+    vp.setAttribute('transform', `translate(${tx},${ty}) scale(${scale})`);
+  }
+
+  function svgPoint(clientX, clientY) {
+    const rect = svg.getBoundingClientRect();
+    return {
+      x: (clientX - rect.left) * (800 / rect.width),
+      y: (clientY - rect.top)  * (620 / rect.height),
+    };
+  }
+
+  function dist(t1, t2) {
+    const dx = t1.clientX - t2.clientX, dy = t1.clientY - t2.clientY;
+    return Math.hypot(dx, dy);
+  }
+
+  // ── Touch events ──
+  svg.addEventListener('touchstart', e => {
+    if (e.touches.length === 1) {
+      isPanning = true;
+      lastX = e.touches[0].clientX;
+      lastY = e.touches[0].clientY;
+      lastDist = null;
+    } else if (e.touches.length === 2) {
+      isPanning = false;
+      lastDist = dist(e.touches[0], e.touches[1]);
+      const midClient = {
+        clientX: (e.touches[0].clientX + e.touches[1].clientX) / 2,
+        clientY: (e.touches[0].clientY + e.touches[1].clientY) / 2,
+      };
+      // Store the SVG-space point under the pinch midpoint (before scaling)
+      const p = svgPoint(midClient.clientX, midClient.clientY);
+      pinchMidSvg = { x: (p.x - tx) / scale, y: (p.y - ty) / scale };
+    }
+    e.preventDefault();
+  }, { passive: false });
+
+  svg.addEventListener('touchmove', e => {
+    if (e.touches.length === 1 && isPanning) {
+      tx += (e.touches[0].clientX - lastX) * (800 / svg.getBoundingClientRect().width);
+      ty += (e.touches[0].clientY - lastY) * (620 / svg.getBoundingClientRect().height);
+      lastX = e.touches[0].clientX;
+      lastY = e.touches[0].clientY;
+      applyTransform();
+    } else if (e.touches.length === 2 && lastDist !== null) {
+      const newDist  = dist(e.touches[0], e.touches[1]);
+      const factor   = newDist / lastDist;
+      const newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, scale * factor));
+
+      // Keep the pinch midpoint anchored in SVG space
+      tx = svgPoint(
+        (e.touches[0].clientX + e.touches[1].clientX) / 2,
+        (e.touches[0].clientY + e.touches[1].clientY) / 2
+      ).x - pinchMidSvg.x * newScale;
+      ty = svgPoint(
+        (e.touches[0].clientX + e.touches[1].clientX) / 2,
+        (e.touches[0].clientY + e.touches[1].clientY) / 2
+      ).y - pinchMidSvg.y * newScale;
+
+      scale    = newScale;
+      lastDist = newDist;
+      applyTransform();
+    }
+    e.preventDefault();
+  }, { passive: false });
+
+  svg.addEventListener('touchend', e => {
+    if (e.touches.length < 2) lastDist = null;
+    if (e.touches.length === 0) isPanning = false;
+  });
+
+  // ── Mouse wheel zoom (desktop bonus) ──
+  svg.addEventListener('wheel', e => {
+    e.preventDefault();
+    const factor   = e.deltaY < 0 ? 1.12 : 0.89;
+    const newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, scale * factor));
+    const p        = svgPoint(e.clientX, e.clientY);
+    const px       = (p.x - tx) / scale;
+    const py       = (p.y - ty) / scale;
+    tx = p.x - px * newScale;
+    ty = p.y - py * newScale;
+    scale = newScale;
+    applyTransform();
+  }, { passive: false });
+
+  // ── Double-tap to reset ──
+  let lastTap = 0;
+  svg.addEventListener('touchend', e => {
+    const now = Date.now();
+    if (now - lastTap < 300) { scale=1; tx=0; ty=0; applyTransform(); }
+    lastTap = now;
+  });
+})();
 
 // ── INIT ──────────────────────────────────────
 updateScores();
