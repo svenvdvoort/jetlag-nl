@@ -238,10 +238,10 @@
       user-select: none;
     }
     .station-card:active { transform: scale(0.975); opacity: 0.8; }
-    .station-card.claimed-a { border-color: var(--ns-yellow); background: var(--ns-yellow-dim); }
-    .station-card.claimed-b { border-color: var(--ns-blue-mid); background: var(--ns-blue-dim); }
-    .station-card.locked-a  { border-color: var(--locked); background: var(--locked-dim); border-width: 2px; }
-    .station-card.locked-b  { border-color: var(--locked); background: var(--locked-dim); border-width: 2px; }
+    .station-card.claimed-a { border-color: var(--ns-yellow); background: var(--ns-yellow-dim); border-width: 1px; }
+    .station-card.claimed-b { border-color: var(--ns-blue-mid); background: var(--ns-blue-dim); border-width: 1px; }
+    .station-card.locked-a  { border-color: var(--ns-yellow); background: var(--ns-yellow-dim); border-width: 1px; }
+    .station-card.locked-b  { border-color: var(--ns-blue-mid); background: var(--ns-blue-dim); border-width: 1px; }
     .station-card.selected  { box-shadow: 0 0 0 2px var(--ns-blue); }
 
     .station-card-row { display: flex; align-items: center; justify-content: space-between; gap: 0.4rem; }
@@ -515,23 +515,23 @@ function clearSavedState() { localStorage.removeItem(STORAGE_KEY); }
 
 // ── DATA ─────────────────────────────────────
 const STATIONS = [
-  { id: 'uitgeest',          	name: 'Uitgeest',             	x: 0.36119574,  	y: 0.1},
-  { id: 'haarlem',             	name: 'Haarlem',               	x: 0.298524426, 	y: 0.227243207 },
-  { id: 'amsterdam-sl', 	name: 'Sloterdijk',  	x: 0.49130414,  	y: 0.22654601 },
-  { id: 'amsterdam-c',    	name: 'Amsterdam C.',    	x: 0.550116995, 	y: 0.23605845 },
-  { id: 'weesp',            		name: 'Weesp',                	x: 0.687035003, 	y: 0.299656177 },
-  { id: 'leiden',           		name: 'Leiden C.',      		x: 0.151540041, 	y: 0.439458479 },
-  { id: 'schiphol',         	name: 'Schiphol',             	x: 0.418451841, 	y: 0.302454515 },
-  { id: 'bijlmer',          		name: 'Bijlmer Arena',    x: 0.595329736, 	y: 0.300238766 },
-  { id: 'hilversum',        	name: 'Hilversum',            	x: 0.819120386, 	y: 0.381896758 },
-  { id: 'amersfoort',       	name: 'Amersfoort',          x: 1,            			y: 0.451358579 },
-  { id: 'utrecht',          		name: 'Utrecht C.',     	x: 0.750728236, 	y: 0.512539993 },
-  { id: 'breukelen',        	name: 'Breukelen',           	x: 0.636473903, 	y: 0.435074734 },
-  { id: 'woerden',          		name: 'Woerden',              	x: 0.54320233,  	y: 0.516933289 },
-  { id: 'alphen',           		name: 'Alphen a/d Rijn',x: 0.318284705, 	y: 0.47903634 },
-  { id: 'gouda',            		name: 'Gouda',                	x: 0.364882288, 	y: 0.581810802 },
-  { id: 'den-haag',         	name: 'Den Haag C.',    	x: 0,            			y: 0.520677141 },
-  { id: 'rotterdam',        	name: 'Rotterdam C.',   	x: 0.139267466,	y: 0.670192445 }
+  { id: 'alphen',           	name: 'Alphen a/d Rijn',  x: 0.318284705, 	y: 0.47903634 },
+  { id: 'amersfoort',       	name: 'Amersfoort',       x: 1,            	y: 0.451358579 },
+  { id: 'amsterdam-c',    	  name: 'Amsterdam C.',    	x: 0.550116995, 	y: 0.23605845 },
+  { id: 'bijlmer',          	name: 'Bijlmer Arena',    x: 0.595329736, 	y: 0.300238766 },
+  { id: 'breukelen',        	name: 'Breukelen',        x: 0.636473903, 	y: 0.435074734 },
+  { id: 'den-haag',         	name: 'Den Haag C.',    	x: 0,            	y: 0.520677141 },
+  { id: 'gouda',            	name: 'Gouda',            x: 0.364882288, 	y: 0.581810802 },
+  { id: 'haarlem',            name: 'Haarlem',          x: 0.298524426, 	y: 0.227243207 },
+  { id: 'hilversum',        	name: 'Hilversum',        x: 0.819120386, 	y: 0.381896758 },
+  { id: 'leiden',           	name: 'Leiden C.',      	x: 0.151540041, 	y: 0.439458479 },
+  { id: 'rotterdam',        	name: 'Rotterdam C.',   	x: 0.139267466,	  y: 0.670192445 },
+  { id: 'schiphol',         	name: 'Schiphol',         x: 0.418451841, 	y: 0.302454515 },
+  { id: 'amsterdam-sl', 	    name: 'Sloterdijk',  	    x: 0.49130414,  	y: 0.22654601 },
+  { id: 'uitgeest',          	name: 'Uitgeest',         x: 0.36119574,  	y: 0.1},
+  { id: 'utrecht',          	name: 'Utrecht C.',     	x: 0.750728236, 	y: 0.512539993 },
+  { id: 'weesp',            	name: 'Weesp',            x: 0.687035003, 	y: 0.299656177 },
+  { id: 'woerden',          	name: 'Woerden',          x: 0.54320233,  	y: 0.516933289 }
 ];
 
 const CONNECTIONS = [
